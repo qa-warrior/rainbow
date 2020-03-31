@@ -9,7 +9,7 @@ import styled from 'styled-components/primitives';
 import { colors, padding, position } from '../../styles';
 import { deviceUtils } from '../../utils';
 import { interpolate } from '../animations';
-import { CoinRow } from '../coin-row';
+// import { CoinRow } from '../coin-row';
 import { ColumnWithMargins, Row, RowWithMargins } from '../layout';
 
 const {
@@ -25,10 +25,13 @@ const {
 
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
 
+// const FirstCoinRowHeight = CoinRow.height + 6;
+
 const Container = styled.View`
-  height: ${CoinRow.height};
   opacity: ${({ descendingOpacity, index }) =>
     1 - 0.2 * (descendingOpacity ? index : 0)};
+  padding-top: ${({ index }) => (index === 0 ? 0 : 0)};
+  top: -10;
   width: 100%;
 `;
 
@@ -39,9 +42,12 @@ const FakeAvatar = styled.View`
 `;
 
 const FakeRow = withProps({
-  align: 'center',
+  align: 'flex-end',
   flex: 0,
+  height: 10,
   justify: 'space-between',
+  paddingBottom: 5,
+  paddingTop: 5,
 })(Row);
 
 const FakeText = styled.View`
@@ -51,11 +57,11 @@ const FakeText = styled.View`
 `;
 
 const Wrapper = styled(RowWithMargins).attrs({
-  align: 'center',
+  align: 'flex-end',
   justify: 'space-between',
   margin: 10,
 })`
-  ${({ index }) => padding(index === 0 ? 15 : 15, 19, 15, 19)};
+  ${padding(0, 19)};
   ${position.size('100%')};
   background-color: ${colors.transparent};
 `;
@@ -148,7 +154,7 @@ export default class AssetListItemSkeleton extends PureComponent {
           flex={1}
           margin={10}
         >
-          <FakeRow marginTop={1}>
+          <FakeRow>
             <FakeText width={100} />
             <FakeText width={80} />
           </FakeRow>

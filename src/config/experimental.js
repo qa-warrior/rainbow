@@ -4,9 +4,9 @@
  * keeping in mind that they should never be broken
  */
 
-export const addCashButtonAvailable = true;
+export const addCashButtonAvailable = false;
 export const discoverSheetAvailable = false;
 export const chartExpandedAvailable = false;
 export const nativeTransactionListAvailable = false;
 export const nativeButtonPressAnimationAvailable = true;
-export const isAvatarPickerAvailable = false;
+export const isAvatarPickerAvailable = true;
