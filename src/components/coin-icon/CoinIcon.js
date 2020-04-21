@@ -6,10 +6,10 @@ import React, {
   useMemo,
   useState,
 } from 'react';
+import ReactCoinIcon, { FallbackIcon } from 'react-coin-icon';
 import { StyleSheet } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import ShadowStack from 'react-native-shadow-stack';
-import ReactCoinIcon, { FallbackIcon } from 'react-coin-icon';
 import { toChecksumAddress } from '../../handlers/web3';
 import { borders, colors, fonts, position, shadow } from '../../styles';
 import { magicMemo } from '../../utils';
