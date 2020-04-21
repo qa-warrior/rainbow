@@ -7,7 +7,7 @@ import { withWalletConnectConnections } from '../../hoc';
 import { colors, padding } from '../../styles';
 import ContextMenu from '../ContextMenu';
 import { RequestVendorLogoIcon } from '../coin-icon';
-import { Centered, ColumnWithMargins, FlexItem, Row } from '../layout';
+import { Centered, ColumnWithMargins, Row } from '../layout';
 import { TruncatedText } from '../text';
 
 const ContainerPadding = 15;
@@ -38,9 +38,8 @@ const WalletConnectListItem = enhance(
     <Row align="center" height={WalletConnectListItemHeight}>
       <Row
         align="center"
-        component={FlexItem}
-        flex={1}
         css={padding(ContainerPadding, 0, ContainerPadding, ContainerPadding)}
+        flex={1}
       >
         <RequestVendorLogoIcon
           backgroundColor={colors.white}

@@ -1,150 +1,162 @@
 import PropTypes from 'prop-types';
-import React, { useCallback, useState } from 'react';
-import ReactCoinIcon, { FallbackIcon } from 'react-coin-icon';
+import React, {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+import { StyleSheet } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import ShadowStack from 'react-native-shadow-stack';
-import { onlyUpdateForKeys } from 'recompact';
-import styled, { css } from 'styled-components/primitives';
+import ReactCoinIcon, { FallbackIcon } from 'react-coin-icon';
 import { toChecksumAddress } from '../../handlers/web3';
-import { borders, colors, fonts } from '../../styles';
+import { borders, colors, fonts, position, shadow } from '../../styles';
+import { magicMemo } from '../../utils';
 import { Icon } from '../icons';
+import { Centered } from '../layout';
 
-const CoinIconSize = 40;
+export const CoinIconSize = 40;
 
-const fallbackTextStyles = css`
-  font-family: ${fonts.family.SFProRounded};
-  letter-spacing: ${fonts.letterSpacing.roundedTight};
-  margin-bottom: 1;
-  text-align: center;
-`;
+const sx = StyleSheet.create({
+  fallbackText: {
+    fontFamily: fonts.family.SFProRounded,
+    letterSpacing: fonts.letterSpacing.roundedTight,
+    marginBottom: 1,
+    textAlign: 'center',
+  },
+  indicatorIconContainer: {
+    ...position.sizeAsObject(20),
+    ...shadow.buildAsObject(0, 4, 6, colors.blueGreyDark, 0.4),
+    backgroundColor: colors.blueGreyDark50,
+    borderRadius: 10,
+    bottom: 3,
+    left: 10,
+    position: 'absolute',
+    zIndex: 10,
+  },
+});
 
-const IndicatorIcon = styled.View`
-  align-items: center;
-  background-color: ${colors.blueGreyDark50};
-  border-radius: 10;
-  bottom: 3;
-  height: 20;
-  justify-content: center;
-  left: 10;
-  position: absolute;
-  shadow-color: ${colors.blueGreyDark};
-  shadow-offset: 0px 4px;
-  shadow-opacity: 0.4;
-  shadow-radius: 6;
-  width: 20;
-  z-index: 10;
-`;
+const coinIconShadow = [
+  [0, 4, 6, colors.dark, 0.04],
+  [0, 1, 3, colors.dark, 0.08],
+];
 
-const CoinIconFallback = fallbackProps => {
-  const { height, width, address, symbol } = fallbackProps;
-  const [remoteIconUrl, setRemoteIconUrl] = useState(null);
-  const [iconNotAvailable, setIconNotAvailable] = useState(false);
+function buildRemoteURL(address) {
+  const checksummedAddress = toChecksumAddress(address);
+  return `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/${checksummedAddress}/logo.png`;
+}
+
+function useRemoteIcon(address) {
+  const [url, setUrl] = useState(null);
+  const [isAvailable, setAvailable] = useState(true);
+  const setNotAvailable = useCallback(() => setAvailable(false), []);
+
   const loadRemoteIcon = useCallback(async () => {
     if (address) {
-      const checksummedAddress = toChecksumAddress(address);
-      const potentialIconUrl = `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/${checksummedAddress}/logo.png`;
-      if (potentialIconUrl !== remoteIconUrl) {
-        setRemoteIconUrl(potentialIconUrl);
+      const potentialIconUrl = buildRemoteURL(address);
+      if (potentialIconUrl !== url) {
+        setUrl(potentialIconUrl);
       }
     }
-  }, [address, remoteIconUrl]);
+  }, [address, url]);
 
-  if (!iconNotAvailable) {
-    loadRemoteIcon();
-  }
+  useEffect(() => {
+    if (isAvailable) {
+      loadRemoteIcon();
+    }
+  }, [isAvailable, loadRemoteIcon]);
 
-  if (iconNotAvailable) {
-    return (
-      <FallbackIcon
-        {...fallbackProps}
-        bgColor={colors.blueGreyDark}
-        symbol={symbol || ''}
-        textStyles={fallbackTextStyles}
-      />
-    );
-  } else if (remoteIconUrl) {
-    return (
-      <FastImage
-        {...fallbackProps}
-        onError={() => {
-          setIconNotAvailable(true);
-        }}
-        source={{ uri: remoteIconUrl }}
-        style={{ height, width }}
-      />
-    );
-  }
-  return null;
+  return {
+    isAvailable,
+    setNotAvailable,
+    url,
+  };
+}
+
+const CoinIconFallback = fallbackProps => {
+  const { address, height, symbol, width } = fallbackProps;
+  const { isAvailable, setNotAvailable, url } = useRemoteIcon(address);
+
+  const imageSource = useMemo(() => ({ uri: url }), [url]);
+  const imageStyle = useMemo(() => ({ height, width }), [height, width]);
+
+  if (isAvailable && !url) return null;
+
+  return !isAvailable ? (
+    <FallbackIcon
+      {...fallbackProps}
+      bgColor={colors.blueGreyDark}
+      symbol={symbol || ''}
+      textStyles={sx.fallbackText}
+    />
+  ) : (
+    <FastImage
+      {...fallbackProps}
+      onError={setNotAvailable}
+      source={imageSource}
+      style={imageStyle}
+    />
+  );
 };
 
-const enhance = onlyUpdateForKeys([
-  'bgColor',
-  'symbol',
-  'address',
-  'isCoinListEdited',
-  'isPinned',
-  'isHidden',
-]);
-const CoinIcon = enhance(
-  ({
-    bgColor,
-    showShadow,
-    size,
-    symbol,
-    address,
-    isPinned,
-    isHidden,
-    isCoinListEdited,
-    ...props
-  }) =>
-    showShadow ? (
-      <>
-        {(isPinned || isHidden) && isCoinListEdited ? (
-          <IndicatorIcon>
-            <Icon
-              color={colors.white}
-              height={isPinned ? 13 : 10}
-              marginTop={isPinned ? 1 : 0}
-              name={isPinned ? 'pin' : 'hidden'}
-              width={isPinned ? 8 : 14}
-            />
-          </IndicatorIcon>
-        ) : null}
-        <ShadowStack
-          {...props}
-          {...borders.buildCircleAsObject(size)}
-          backgroundColor={bgColor}
-          opacity={isHidden ? 0.4 : 1}
-          shadows={[
-            [0, 4, 6, colors.dark, 0.04],
-            [0, 1, 3, colors.dark, 0.08],
-          ]}
-          shouldRasterizeIOS
-        >
-          <ReactCoinIcon
-            address={address || ''}
-            bgColor={bgColor}
-            fallbackRenderer={CoinIconFallback}
-            size={size}
-            symbol={symbol || ''}
+const CoinIcon = ({
+  address,
+  bgColor,
+  isCoinListEdited,
+  isHidden,
+  isPinned,
+  showShadow,
+  size,
+  symbol,
+  ...props
+}) =>
+  showShadow ? (
+    <Fragment>
+      {(isPinned || isHidden) && isCoinListEdited ? (
+        <Centered style={sx.indicatorIconContainer}>
+          <Icon
+            color={colors.white}
+            height={isPinned ? 13 : 10}
+            marginTop={isPinned ? 1 : 0}
+            name={isPinned ? 'pin' : 'hidden'}
+            width={isPinned ? 8 : 14}
           />
-        </ShadowStack>
-      </>
-    ) : (
-      <ReactCoinIcon
+        </Centered>
+      ) : null}
+      <ShadowStack
         {...props}
-        address={address || ''}
-        bgColor={bgColor}
-        fallbackRenderer={CoinIconFallback}
-        size={size}
-        symbol={symbol}
-      />
-    )
-);
+        {...borders.buildCircleAsObject(size)}
+        backgroundColor={bgColor}
+        opacity={isHidden ? 0.4 : 1}
+        shadows={coinIconShadow}
+      >
+        <ReactCoinIcon
+          address={address || ''}
+          bgColor={bgColor}
+          fallbackRenderer={CoinIconFallback}
+          size={size}
+          symbol={symbol || ''}
+        />
+      </ShadowStack>
+    </Fragment>
+  ) : (
+    <ReactCoinIcon
+      {...props}
+      address={address || ''}
+      bgColor={bgColor}
+      fallbackRenderer={CoinIconFallback}
+      size={size}
+      symbol={symbol}
+    />
+  );
 
 CoinIcon.propTypes = {
   address: PropTypes.oneOfType([PropTypes.oneOf([null]), PropTypes.string]),
   bgColor: PropTypes.string,
+  isCoinListEdited: PropTypes.bool,
+  isHidden: PropTypes.bool,
+  isPinned: PropTypes.bool,
   showShadow: PropTypes.bool,
   size: PropTypes.number,
   symbol: PropTypes.oneOfType([PropTypes.oneOf([null]), PropTypes.string]),
@@ -155,6 +167,11 @@ CoinIcon.defaultProps = {
   size: CoinIconSize,
 };
 
-CoinIcon.size = CoinIconSize;
-
-export default CoinIcon;
+export default magicMemo(CoinIcon, [
+  'address',
+  'bgColor',
+  'isCoinListEdited',
+  'isHidden',
+  'isPinned',
+  'symbol',
+]);
