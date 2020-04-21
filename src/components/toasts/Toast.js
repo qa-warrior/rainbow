@@ -1,26 +1,24 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { bin, useSpringTransition } from 'react-native-redash';
-import styled from 'styled-components';
-import { colors, padding, shadow } from '../../styles';
+import { colors, shadow } from '../../styles';
 import { interpolate } from '../animations';
 import { Icon } from '../icons';
-import { Centered, RowWithMargins } from '../layout';
+import { RowWithMargins } from '../layout';
 import { Text } from '../text';
 
-const Content = styled(RowWithMargins).attrs({
-  component: Centered,
-  margin: 5,
-  self: 'center',
-})`
-  ${padding(10)};
-  ${shadow.build(0, 6, 10, colors.dark, 0.14)}
-  border-radius: 50;
-  bottom: 40;
-  position: absolute;
-  z-index: 100;
-`;
+const sx = StyleSheet.create({
+  toast: {
+    ...shadow.buildAsObject(0, 6, 10, colors.dark, 0.14),
+    borderRadius: 50,
+    bottom: 40,
+    padding: 10,
+    position: 'absolute',
+    zIndex: 100,
+  },
+});
 
 const springConfig = {
   damping: 14,
@@ -46,12 +44,19 @@ const Toast = ({ color, distance, icon, isVisible, text, textColor }) => {
 
   return (
     <Animated.View style={{ opacity, transform: [{ translateY }] }}>
-      <Content backgroundColor={color} shouldRasterizeIOS>
+      <RowWithMargins
+        align="center"
+        backgroundColor={color}
+        justify="center"
+        margin={5}
+        self="center"
+        style={sx.toast}
+      >
         {icon && <Icon color={textColor} marginTop={3} name={icon} />}
         <Text color={textColor} size="smedium" weight="semibold">
           {text}
         </Text>
-      </Content>
+      </RowWithMargins>
     </Animated.View>
   );
 };

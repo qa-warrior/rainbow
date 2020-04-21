@@ -50,6 +50,8 @@ function buildRemoteURL(address) {
 function useRemoteIcon(address) {
   const [url, setUrl] = useState(null);
   const [isAvailable, setAvailable] = useState(true);
+  // TODO: to avoid flash, this shouldnt be available the first time,
+  // it should only try loading the remote icon once
   const setNotAvailable = useCallback(() => setAvailable(false), []);
 
   const loadRemoteIcon = useCallback(async () => {

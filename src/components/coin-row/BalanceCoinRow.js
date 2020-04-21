@@ -10,7 +10,8 @@ import {
   withEditOptions,
   withOpenBalances,
 } from '../../hoc';
-import { deviceUtils, isNewValueForPath } from '../../utils';
+import { useDimensions } from '../../hooks';
+import { isNewValueForPath } from '../../utils';
 import { ButtonPressAnimation } from '../animations';
 import { FlexItem, Row } from '../layout';
 import BottomRowText from './BottomRowText';
@@ -48,17 +49,18 @@ TopRow.propTypes = {
 };
 
 const BalanceCoinRow = ({
+  isCoinListEdited,
   isFirstCoinRow,
   firstCoinRowMarginTop,
   item,
   onPress,
   onPressSend,
-  isCoinListEdited,
   pushSelectedCoin,
-  removeSelectedCoin,
   recentlyPinnedCount,
+  removeSelectedCoin,
   ...props
 }) => {
+  const { width: deviceWidth } = useDimensions();
   const [toggle, setToggle] = useState(false);
   const [previousPinned, setPreviousPinned] = useState(0);
 
@@ -89,7 +91,7 @@ const BalanceCoinRow = ({
 
   return (
     <View
-      width={deviceUtils.dimensions.width}
+      width={deviceWidth}
       paddingTop={isFirstCoinRow ? firstCoinRowMarginTop : 0}
     >
       <ButtonPressAnimation
@@ -100,9 +102,7 @@ const BalanceCoinRow = ({
           <View
             left={isCoinListEdited ? editTranslateOffset : 0}
             width={
-              deviceUtils.dimensions.width -
-              80 -
-              (isCoinListEdited ? editTranslateOffset : 0)
+              deviceWidth - 80 - (isCoinListEdited ? editTranslateOffset : 0)
             }
           >
             <CoinRow
