@@ -6,15 +6,15 @@ import fonts from './fonts';
 export const buildTextStyles = ({
   align,
   color,
-  family,
+  family = 'SFProRounded',
   isEmoji,
-  letterSpacing,
+  letterSpacing = 'rounded',
   lineHeight,
   mono,
   opacity,
   size,
   uppercase,
-  weight,
+  weight = 'regular',
 }) => ({
   // font family
   ...(isEmoji ? {} : { fontFamily: fonts.family[mono ? 'SFMono' : family] }),
