@@ -69,7 +69,7 @@ const importSeedPhraseFlowRoutes = {
   },
   [Routes.OVERLAY_EXPANDED_ASSET_SCREEN]: {
     navigationOptions: overlayExpandedPreset,
-    screen: ExpandedAssetScreenWithData,
+    screen: ModalScreen,
   },
 };
 
