@@ -58,6 +58,7 @@
     "@uniswap/sdk": "^1.0.0-beta.4",
     "@walletconnect/react-native": "^1.0.0-beta.29",
     "@walletconnect/utils": "^1.0.0-beta.36",
+    "apollo-cache-persist-dev": "^0.2.1",
     "assert": "^1.4.1",
     "asyncstorage-down": "^4.2.0",
     "axios": "^0.19.0",

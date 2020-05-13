@@ -2003,6 +2003,11 @@ anymatch@^2.0.0:
     micromatch "^3.1.4"
     normalize-path "^2.1.1"
 
+apollo-cache-persist-dev@^0.2.1:
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/apollo-cache-persist-dev/-/apollo-cache-persist-dev-0.2.1.tgz#c622c091db75cf7a76f4663fb74da02cda271b31"
+  integrity sha512-YvrNw3cdtRg2rUXEVBJNVbiEpAdWvDx7+053wdnGlymCU1qm/ymciX7L+CKklpbXJ3p+fYxa07dUNJYRhppBhQ==
+
 argparse@^1.0.7:
   version "1.0.10"
   resolved "https://registry.yarnpkg.com/argparse/-/argparse-1.0.10.tgz#bcd6791ea5ae09725e17e5ad988134cd40b3d911"

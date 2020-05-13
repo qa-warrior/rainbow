@@ -26,6 +26,7 @@ import { enableScreens } from 'react-native-screens';
 import VersionNumber from 'react-native-version-number';
 import { connect, Provider } from 'react-redux';
 import { compose, withProps } from 'recompact';
+import initApolloCache from './apollo/cache';
 import { FlexItem } from './components/layout';
 import { OfflineToast, TestnetToast } from './components/toasts';
 import {
@@ -81,6 +82,7 @@ class App extends Component {
   state = { appState: AppState.currentState };
 
   async componentDidMount() {
+    initApolloCache();
     AppState.addEventListener('change', this.handleAppStateChange);
     Linking.addEventListener('url', this.handleOpenLinkingURL);
     await this.handleInitializeAnalytics();
