@@ -81,7 +81,7 @@ export default function WalletScreen() {
       >
         <HeaderGestureBlocker enabled={isCoinListEdited}>
           <Header marginTop={5} justify="space-between">
-            <ProfileHeaderButton navigation={navigation} />
+            <ProfileHeaderButton />
             <CameraHeaderButton navigation={navigation} />
           </Header>
         </HeaderGestureBlocker>
