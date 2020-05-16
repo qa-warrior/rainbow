@@ -7,10 +7,9 @@ import networkTypes from '../../helpers/networkTypes';
 import { colors, padding, shadow } from '../../styles';
 import { isNewValueForObjectPaths } from '../../utils';
 import { interpolate } from '../animations';
-import { Nbsp } from '../html-entities';
 import { Icon } from '../icons';
 import { Centered, RowWithMargins } from '../layout';
-import { Text } from '../text';
+import { Nbsp, Text } from '../text';
 
 const StyledBadge = styled(RowWithMargins).attrs({
   as: Centered,
