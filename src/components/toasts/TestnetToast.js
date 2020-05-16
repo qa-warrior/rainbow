@@ -13,7 +13,7 @@ import { Centered, RowWithMargins } from '../layout';
 import { Text } from '../text';
 
 const StyledBadge = styled(RowWithMargins).attrs({
-  component: Centered,
+  as: Centered,
   margin: 5,
   self: 'center',
 })`
