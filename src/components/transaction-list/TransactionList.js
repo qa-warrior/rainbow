@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import React, { useRef, useState } from 'react';
 import { Linking, requireNativeComponent, View } from 'react-native';
 import { useDispatch } from 'react-redux';
+import styled from 'styled-components/primitives';
 import {
   isAvatarPickerAvailable,
   isMultiwalletAvailable,
@@ -19,6 +20,26 @@ import { FloatingEmojis } from '../floating-emojis';
 
 const NativeTransactionListView = requireNativeComponent('TransactionListView');
 
+const Container = styled.View`
+  flex: 1;
+  margin-top: ${isMultiwalletAvailable ? 10 : 0};
+`;
+
+const FloatingEmojisRegion = styled(FloatingEmojis).attrs({
+  distance: 250,
+  duration: 500,
+  fadeOut: false,
+  scaleTo: 0,
+  size: 50,
+  wiggleFactor: 0,
+})`
+  height: 0;
+  left: ${({ tapTarget }) => tapTarget[0] - 24};
+  position: absolute;
+  top: ${({ tapTarget }) => tapTarget[1] - tapTarget[3]};
+  width: ${({ tapTarget }) => tapTarget[2]};
+`;
+
 const TransactionList = ({
   accountAddress,
   accountColor,
@@ -32,7 +53,6 @@ const TransactionList = ({
   navigation,
   network,
   requests,
-  style,
   transactions,
 }) => {
   const [tapTarget, setTapTarget] = useState([0, 0, 0, 0]);
@@ -177,12 +197,13 @@ const TransactionList = ({
   };
 
   return (
-    <View style={style}>
-      <NativeTransactionListView
+    <Container>
+      <Container
         accountAddress={addressOrEns}
         accountColor={colors.avatarColor[accountColor]}
         accountName={accountName}
         addCashAvailable={addCashAvailable}
+        as={NativeTransactionListView}
         data={data}
         isAvatarPickerAvailable={isAvatarPickerAvailable}
         onAddCashPress={onAddCashPress}
@@ -193,31 +214,16 @@ const TransactionList = ({
         onRequestExpire={onRequestExpire}
         onRequestPress={onRequestPress}
         onTransactionPress={onTransactionPress}
-        style={style}
       />
-      <FloatingEmojis
-        distance={250}
-        duration={500}
-        fadeOut={false}
-        scaleTo={0}
-        size={50}
-        style={{
-          height: 0,
-          left: tapTarget[0] - 24,
-          position: 'absolute',
-          top: tapTarget[1] - tapTarget[3],
-          width: tapTarget[2],
-        }}
-        wiggleFactor={0}
-      >
+      <FloatingEmojisRegion tapTarget={tapTarget}>
         {({ onNewEmoji: newOnNewEmoji }) => {
           if (!onNewEmoji.current) {
             onNewEmoji.current = newOnNewEmoji;
           }
           return null;
         }}
-      </FloatingEmojis>
-    </View>
+      </FloatingEmojisRegion>
+    </Container>
   );
 };
 
@@ -234,12 +240,7 @@ TransactionList.propTypes = {
   navigation: PropTypes.object,
   network: PropTypes.string,
   requests: PropTypes.array,
-  style: PropTypes.object,
   transactions: PropTypes.array,
-};
-
-TransactionList.defaultProps = {
-  style: {},
 };
 
 export default TransactionList;

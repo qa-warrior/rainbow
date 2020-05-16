@@ -1,5 +1,4 @@
 import { get } from 'lodash';
-import PropTypes from 'prop-types';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 import { useIsFocused, useNavigation } from 'react-navigation-hooks';
@@ -36,11 +35,7 @@ const ProfileScreenPage = styled(Page)`
   flex: 1;
 `;
 
-const NativeTransactionList = styled(TransactionList)`
-  flex: 1;
-`;
-
-const ProfileScreen = ({ navigation }) => {
+export default function ProfileScreen({ navigation }) {
   const [activityListInitialized, setActivityListInitialized] = useState(false);
   const isFocused = useIsFocused();
   const { navigate } = useNavigation();
@@ -106,7 +101,7 @@ const ProfileScreen = ({ navigation }) => {
         />
       </Header>
       {network === NetworkTypes.mainnet && nativeTransactionListAvailable ? (
-        <NativeTransactionList
+        <TransactionList
           accountAddress={accountAddress}
           accountColor={accountColor}
           accountENS={accountENS}
@@ -129,10 +124,6 @@ const ProfileScreen = ({ navigation }) => {
           navigation={navigation}
           network={network}
           requests={requests}
-          style={[
-            { flex: 1 },
-            isMultiwalletAvailable ? { marginTop: 10 } : null,
-          ]}
           transactions={transactions}
         />
       ) : (
@@ -164,10 +155,4 @@ const ProfileScreen = ({ navigation }) => {
       )}
     </ProfileScreenPage>
   );
-};
-
-ProfileScreen.propTypes = {
-  navigation: PropTypes.object,
-};
-
-export default ProfileScreen;
+}
