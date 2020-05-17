@@ -1,3 +1,4 @@
+import { get } from 'lodash';
 import React, {
   useCallback,
   useEffect,
@@ -5,6 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { useNavigation } from 'react-navigation-hooks';
 import { useDispatch } from 'react-redux';
 import { withProps } from 'recompact';
@@ -20,6 +22,7 @@ import {
   useWallets,
 } from '../hooks';
 import { useWalletsWithBalancesAndNames } from '../hooks/useWalletsWithBalancesAndNames';
+import { createWallet } from '../model/wallet';
 import {
   addressSetSelected,
   createAccountForWallet,
@@ -71,6 +74,7 @@ const ChangeWalletSheet = () => {
   const { accountAddress } = useAccountSettings();
   const initializeWallet = useInitializeWallet();
   const walletsWithBalancesAndNames = useWalletsWithBalancesAndNames(wallets);
+  const creatingWallet = useRef();
   const prevWalletsWithBalancesAndNames = usePrevious(
     walletsWithBalancesAndNames
   );
@@ -101,20 +105,19 @@ const ChangeWalletSheet = () => {
     listHeight = maxListHeight;
   }
   const onChangeAccount = useCallback(
-    async (wallet_id, address) => {
-      if (editMode) return;
-      if (address === accountAddress) return;
+    async (wallet_id, address, fromDeletion = false) => {
+      if (editMode && !fromDeletion) return;
       try {
         const wallet = wallets[wallet_id];
         dispatch(walletsSetSelected(wallet));
         dispatch(addressSetSelected(address));
         await initializeWallet();
-        goBack();
+        !fromDeletion && goBack();
       } catch (e) {
         logger.log('error while switching account', e);
       }
     },
-    [accountAddress, dispatch, editMode, goBack, initializeWallet, wallets]
+    [dispatch, editMode, goBack, initializeWallet, wallets]
   );
 
   const deleteWallet = useCallback(
@@ -129,10 +132,10 @@ const ChangeWalletSheet = () => {
         return false;
       });
       // if there are no visible wallets, then delete the wallet
-      const visibleAdddresses = newWallets[wallet_id].addresses.filter(
+      const visibleAddresses = newWallets[wallet_id].addresses.filter(
         account => account.visible
       );
-      if (visibleAdddresses.length === 0) {
+      if (visibleAddresses.length === 0) {
         delete newWallets[wallet_id];
       }
       await dispatch(walletsUpdate(newWallets));
@@ -182,14 +185,27 @@ const ChangeWalletSheet = () => {
   const onEditWallet = useCallback(
     (wallet_id, address, label) => {
       const wallet = wallets[wallet_id];
-      if (!selectedWallet) return;
-
+      // If there's more than 1 account
+      // It's deletable
       let isDeletable = false;
-      if (Object.keys(wallet).length > 1 && selectedWallet.id !== wallet_id) {
-        isDeletable = true;
+      for (let i = 0; i < Object.keys(wallets).length; i++) {
+        const key = Object.keys(wallets)[i];
+        const someWallet = wallets[key];
+        const otherAccount = someWallet.addresses.find(
+          account => account.visible && account.address !== address
+        );
+        if (otherAccount) {
+          isDeletable = true;
+          break;
+        }
       }
 
-      const buttons = ['Rename Wallet'];
+      const accountInUse = wallet.addresses.find(
+        account => account.address === address
+      );
+      const buttons = [
+        accountInUse.label ? 'Rename Wallet' : 'Name your wallet',
+      ];
       if (isDeletable) {
         buttons.push('Delete Wallet');
       }
@@ -207,25 +223,80 @@ const ChangeWalletSheet = () => {
             // Edit wallet
             renameWallet(wallet_id, address);
           } else if (isDeletable && buttonIndex === 1) {
-            // Delete wallet
-            deleteWallet(wallet_id, address);
+            // Delete wallet with confirmation
+            showActionSheetWithOptions(
+              {
+                cancelButtonIndex: 1,
+                destructiveButtonIndex: 0,
+                message: `Are you sure that you want to delete this wallet?`,
+                options: ['Delete Wallet', 'Cancel'],
+              },
+              async buttonIndex => {
+                if (buttonIndex === 0) {
+                  await deleteWallet(wallet_id, address);
+                  ReactNativeHapticFeedback.trigger('notificationSuccess');
+                  // If we're deleting the selected wallet
+                  // we need to switch to another one
+                  if (address === accountAddress) {
+                    for (let i = 0; i < Object.keys(wallets).length; i++) {
+                      const key = Object.keys(wallets)[i];
+                      const someWallet = wallets[key];
+                      const found = someWallet.addresses.find(
+                        account =>
+                          account.visible && account.address !== address
+                      );
+
+                      if (found) {
+                        await onChangeAccount(key, found.address, true);
+                        break;
+                      }
+                    }
+                  }
+                }
+              }
+            );
           }
         }
       );
     },
-    [deleteWallet, renameWallet, selectedWallet, wallets]
+    [accountAddress, deleteWallet, onChangeAccount, renameWallet, wallets]
   );
 
   const onPressAddAccount = useCallback(
     async wallet_id => {
       try {
-        await dispatch(createAccountForWallet(wallet_id));
-        await initializeWallet();
+        if (creatingWallet.current) return;
+        creatingWallet.current = true;
+        // Show naming modal
+        navigate(Routes.EXPANDED_ASSET_SCREEN, {
+          actionType: 'Create',
+          asset: [],
+          isNewProfile: true,
+          onCloseModal: async args => {
+            if (args) {
+              const name = get(args, 'name', '');
+              const color = get(args, 'color', colors.getRandomColor());
+              if (wallet_id) {
+                await dispatch(createAccountForWallet(wallet_id, color, name));
+                await initializeWallet();
+              } else {
+                await createWallet(null, color, name);
+                await initializeWallet();
+              }
+            }
+            creatingWallet.current = false;
+          },
+          profile: {
+            color: null,
+            name: ``,
+          },
+          type: 'wallet_profile_creator',
+        });
       } catch (e) {
         logger.log('Error while trying to add account', e);
       }
     },
-    [dispatch, initializeWallet]
+    [dispatch, initializeWallet, navigate]
   );
 
   const onPressImportSeedPhrase = useCallback(() => {
